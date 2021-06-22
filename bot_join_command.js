@@ -4,7 +4,7 @@ function lambda(input, callback) {
   const httpClient = Toolbelt.HTTPClient(); // For API Docs look @ https://www.npmjs.com/package/request-promise
   const secretClient = Toolbelt.SecretClient();
   const { conversationId } = input.payload;
-  const region = 'sy'
+  
   /**
   * arguments: String array of command arguments.
   * conversationId: The ID of the conversation in which the command was called.
@@ -14,6 +14,7 @@ function lambda(input, callback) {
   // UPDATE BELOW
   const leUserId = "1130079770"; // userid of bot joining
   const agentLoginName = "testbot"; // login name of bot joining
+  const region = 'sy' // change to your region
   // Create an APP KEY in Conversational Cloud with 'login' permission. This App Key is then used to expose a bearer token required for this function
   const appKey = await secretClient.readSecret('AppKey');
   
