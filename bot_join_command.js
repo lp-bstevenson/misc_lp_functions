@@ -4,7 +4,7 @@ function lambda(input, callback) {
   const httpClient = Toolbelt.HTTPClient(); // For API Docs look @ https://www.npmjs.com/package/request-promise
   const secretClient = Toolbelt.SecretClient();
   const { conversationId } = input.payload;
-
+  const region = 'sy'
   /**
   * arguments: String array of command arguments.
   * conversationId: The ID of the conversation in which the command was called.
@@ -23,7 +23,7 @@ function lambda(input, callback) {
 
     async function getToken(name, appKey, secret, accessToken, accessSecretToken) {
       console.info(`siteId: ${process.env.BRAND_ID}`)
-      var res = await httpClient(`https://sy.agentvep.liveperson.net/api/account/${process.env.BRAND_ID}/login?v=1.3`, {
+      var res = await httpClient(`https://${region}.agentvep.liveperson.net/api/account/${process.env.BRAND_ID}/login?v=1.3`, {
         method: "POST", // HTTP VERB
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ "username": name, "appKey": appKey, "secret": secret, "accessToken": accessToken, "accessTokenSecret": accessSecretToken }),
@@ -36,7 +36,7 @@ function lambda(input, callback) {
 
     async function botJoin(token, agentLoginName, leUserId, convId, yourId, jointype) {
       console.info(JSON.stringify({ token: token, agentLoginName: agentLoginName, leUserId: leUserId, convId: convId, yourId: yourId, jointype: jointype }))
-      var res = await httpClient(`https://sy.intentid.liveperson.net/v1/userjoin/${jointype}/${convId}`, {
+      var res = await httpClient(`https://${region}.intentid.liveperson.net/v1/userjoin/${jointype}/${convId}`, {
         method: "POST",
         headers: { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'user-id': `${yourId}`, 'account-id': process.env.BRAND_ID, },
         body: JSON.stringify({ "conversationId": convId, "leUserId": leUserId, "brandId": process.env.BRAND_ID, "userName": agentLoginName }),
