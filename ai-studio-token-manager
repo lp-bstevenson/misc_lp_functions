@@ -1,3 +1,4 @@
+
 function lambda(input, callback) {
     const { Toolbelt } = require("lp-faas-toolbelt");
     const httpClient = Toolbelt.HTTPClient();
@@ -12,7 +13,6 @@ function lambda(input, callback) {
                 email,
                 password
             })
-            // qs: { key: firebaseApiKey },
             const response = await httpClient(url, {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -29,17 +29,15 @@ function lambda(input, callback) {
     }
 
     const updateToken = async (secretName, newValues) => {
-      secretClient.readSecret(secretName)
-      .then(mySecret => {        
-        mySecret.value = {...mySecret.value, ...newValues};
-        return secretClient.updateSecret(mySecret);
-      })
-      .then(_ => {
-        return true
-      })
-      .catch(err => {
-        console.error(`Failed during secret operation with ${err.message}`);
-      });
+        try {
+            const secret = await secretClient.readSecret(secretName)
+            secret.value = {...secret.value, ...newValues};
+            await secretClient.updateSecret(secret)
+            return true
+        }
+        catch (err) {
+            console.error(`Failed during secret operation with ${err.message}`)
+            }
     }
 
 
@@ -49,7 +47,6 @@ function lambda(input, callback) {
     }
 
     const main = async (input, callback) => {
-        try {
         const appKey = await secretClient.readSecret('AI_STUDIO_CREDENTIALS')
         const { firebaseApiKey, email, password } = appKey.value
         
@@ -64,6 +61,7 @@ function lambda(input, callback) {
             })
 
         if (!token_updated) {
+            console.error("error updating token")
             return callback(null, null)
         }
 
@@ -71,11 +69,6 @@ function lambda(input, callback) {
         
         return callback(null, null)
         
-
-        } catch (error) {
-            console.error(JSON.stringify(error));
-            return callback(null, null)
-        }
 
     }
 
