@@ -1,0 +1,83 @@
+function lambda(input, callback) {
+    const { Toolbelt } = require("lp-faas-toolbelt");
+    const httpClient = Toolbelt.HTTPClient();
+    const secretClient = Toolbelt.SecretClient();
+
+    const login = async (firebaseApiKey, email, password) => {
+
+        try {
+            const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`
+            const body = JSON.stringify({
+                returnSecureToken: true,
+                email,
+                password
+            })
+            // qs: { key: firebaseApiKey },
+            const response = await httpClient(url, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body,
+                
+                simple: false,
+                resolveWithFullResponse: false
+                })
+            return response;            
+        } catch (error) {
+            console.error(JSON.stringify(error));
+            
+        }
+    }
+
+    const updateToken = async (secretName, newValues) => {
+      secretClient.readSecret(secretName)
+      .then(mySecret => {        
+        mySecret.value = {...mySecret.value, ...newValues};
+        return secretClient.updateSecret(mySecret);
+      })
+      .then(_ => {
+        return true
+      })
+      .catch(err => {
+        console.error(`Failed during secret operation with ${err.message}`);
+      });
+    }
+
+
+    parse = (a) => {
+        try { return JSON.parse(a) }
+        catch (e) {return a }
+    }
+
+    const main = async (input, callback) => {
+        try {
+        const appKey = await secretClient.readSecret('AI_STUDIO_CREDENTIALS')
+        const { firebaseApiKey, email, password } = appKey.value
+        
+        const login_response = await login(firebaseApiKey, email, password)
+        const user = parse(login_response)
+        if (!user) {
+            return callback(null, { error: 'user not found' })
+        }
+
+        const token_updated = await updateToken("AI_STUDIO_CREDENTIALS", {
+            "id_token": user.idToken
+            })
+
+        if (!token_updated) {
+            return callback(null, null)
+        }
+
+        console.info(`Stored id token for user ${user.displayName}`)
+        
+        return callback(null, null)
+        
+
+        } catch (error) {
+            console.error(JSON.stringify(error));
+            return callback(null, null)
+        }
+
+    }
+
+    main(input, callback);
+}
